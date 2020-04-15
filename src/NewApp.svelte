@@ -1,5 +1,6 @@
 <script>
 
+    import * as d3 from "d3";
     import { get_solution } from './model';
 
     const countries = [{
@@ -65,7 +66,23 @@
         InterventionAmt,
         duration);
 
-    console.log(solution);
+    // chart stuff!
+
+    var data = solution.P.map(d => d[0]);
+    var xMax = data.length;
+    var yMax = data.reduce((a, b) => a > b ? a : b);
+
+    var xScale = d3.scaleLinear()
+        .domain([0, xMax])
+        .range([0, 500]);
+    var yScale = d3.scaleLinear()
+        .domain([0, yMax])
+        .range([500, 0]); // flipped around for SVG co-ord system
+
+    var lineFunction = d3.line()
+        .x((d, i) => xScale(i))
+        .y(d => yScale(d))
+        .curve(d3.curveMonotoneX);
 </script>
 
 <style>
@@ -128,7 +145,17 @@
             {/each}
         </div>
         <div id="chart">
-            <!-- chart lives here! -->
+            <svg width="500" height="500">
+                <g>
+                    <path
+                        fill="none"
+                        stroke="steelblue"
+                        stroke-width="1.5"
+                        d={lineFunction(data)}
+                    >
+                    </path>
+                </g>
+            </svg>
         </div>
     </section>
 

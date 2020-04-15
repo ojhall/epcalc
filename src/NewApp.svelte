@@ -1,4 +1,71 @@
 <script>
+
+    import { get_solution } from './model';
+
+    const countries = [{
+        id: 'uk',
+        displayName: 'United Kingdom'
+    }];
+
+    let activeCountry = countries.find(c => c.id === 'uk');
+
+    const interventions = [{
+        id: 'do-nothing',
+        displayName: 'Do nothing',
+        transmissionRateChange: 0.0,
+        active: false
+    }, {
+        id: 'stay-at-home',
+        displayName: 'Stay at home',
+        transmissionRateChange: -0.5,
+        active: false
+    }, {
+        id: 'stay-at-home-plus-contact-tracing',
+        displayName: 'Stay at home + contact tracing',
+        transmissionRateChange: -1.0,
+        active: false
+    }];
+
+    var historicalData = [];
+    var modelledData = [];
+
+    var Time_to_death     = 32
+    var logN              = Math.log(7e6)
+    var N                 = Math.exp(logN)
+    var I0                = 1
+    var R0                = 2.2
+    var D_incbation       = 5.2       
+    var D_infectious      = 2.9 
+    var D_recovery_mild   = (14 - 2.9)  
+    var D_recovery_severe = (31.5 - 2.9)
+    var D_hospital_lag    = 5
+    var D_death           = Time_to_death - D_infectious 
+    var CFR               = 0.02  
+    var InterventionTime  = 100  
+    var OMInterventionAmt = 2/3
+    var InterventionAmt   = 1 - OMInterventionAmt
+    var dt                = 2
+    var P_SEVERE          = 0.2
+    var duration          = 7*12*1e10
+
+    var solution = get_solution(
+        dt,
+        N,
+        I0,
+        R0,
+        D_incbation,
+        D_infectious,
+        D_recovery_mild,
+        D_hospital_lag,
+        D_recovery_severe,
+        D_death,
+        P_SEVERE,
+        CFR,
+        InterventionTime,
+        InterventionAmt,
+        duration);
+
+    console.log(solution);
 </script>
 
 <style>
@@ -31,14 +98,37 @@
 
 <main>
     <section>
-        <h1>United Kingdom</h1>
-        <select id="location">
-            <option value="uk">United Kingdom</option>
+        <h1>{activeCountry.displayName}</h1>
+        <select bind:value={activeCountry}>
+            <!--
+                NOTE: setting this value may update things like:
+                * historical data
+                * population size
+                * enacted interventions
+            -->
+            {#each countries as country}
+                <option value={country}>{country.displayName}</option>
+            {/each}
         </select>
-        <div>Transmission rate box</div>
-        <div>Current intervention box</div>
+
+        <div>Transmission rate info box</div>
+        <div>Current intervention info box</div>
+
         <div>
-            Chart goes here!
+            <!--
+                NOTE: these checkboxes determine which curves are shown on the chart
+            -->
+            {#each interventions as intervention}
+                <label>
+                    <input
+                        type="checkbox"
+                        bind:checked={intervention.active} />
+                    {intervention.displayName}
+                </label>
+            {/each}
+        </div>
+        <div id="chart">
+            <!-- chart lives here! -->
         </div>
     </section>
 
@@ -73,7 +163,7 @@
                 <td>19,898</td>
             </tr>
             <tr>
-                <td>Stay at home + Contact tracing</td>
+                <td>Stay at home + contact tracing</td>
                 <td class="r-below-one">0.1 - 0.5</td>
                 <td>220,498</td>
                 <td>-</td>

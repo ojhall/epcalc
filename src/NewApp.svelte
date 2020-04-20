@@ -1,6 +1,7 @@
 <script>
 
     import * as d3 from "d3";
+    import NewCheckbox from './NewCheckbox.svelte';
     import { get_solution } from './model';
 
     const countries = [{
@@ -14,16 +15,19 @@
         id: 'do-nothing',
         displayName: 'Do nothing',
         transmissionRateFactor: 1.0,
+        color: '#ED388D',
         active: false
     }, {
         id: 'stay-at-home',
         displayName: 'Stay at home',
         transmissionRateFactor: 0.6,
+        color: '#336DC2',
         active: false
     }, {
         id: 'stay-at-home-plus-contact-tracing',
         displayName: 'Stay at home + contact tracing',
         transmissionRateFactor: 0.4,
+        color: '#1AAC1E',
         active: false
     }];
 
@@ -56,7 +60,14 @@
     var duration          = 7*12*1e10
 
     $: activeInterventions = interventions.filter(i => i.active);
-    $: solutions = activeInterventions.map(i => getSolutionForIntervention(i.transmissionRateFactor));
+
+    $: interventionResults = activeInterventions.map(i => {
+        const solution = getSolutionForIntervention(i.transmissionRateFactor);
+        return {
+            color: i.color,
+            data: solution.P.map(d => d[1])
+        };
+    });
 
     const getSolutionForIntervention = (transmissionRateFactor) => {
         return get_solution(
@@ -79,14 +90,11 @@
 
     // chart stuff!
 
-    $: solutionData = solutions.map(solution => solution.P.map(d => d[0]));
-
-    var xMax = 0;
-    var yMax = 0;
-    var solutionData = [];
-    $: solutionData.forEach(solutionData => {
-        xMax = Math.max(xMax, solutionData.length);
-        yMax = Math.max(yMax, solutionData.reduce((a, b) => a > b ? a : b));
+    $: xMax = 0;
+    $: yMax = 0;
+    $: interventionResults.forEach(interventionResult => {
+        xMax = Math.max(xMax, interventionResult.data.length);
+        yMax = Math.max(yMax, interventionResult.data.reduce((a, b) => a > b ? a : b));
     });
 
     const graphWidth = 800;
@@ -102,6 +110,10 @@
         .x((d, i) => xScale(i))
         .y(d => yScale(d))
         .curve(d3.curveMonotoneX);
+    $: areaFunction = d3.area()
+        .x((d, i) => xScale(i))
+        .y0(graphHeight)
+        .y1(d => d3.scaleLinear().domain([0, yMax]).range([graphHeight, 0])(d));
 </script>
 
 <style>
@@ -224,25 +236,28 @@
                     NOTE: these checkboxes determine which curves are shown on the chart
                 -->
                 {#each interventions as intervention}
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={intervention.active}
-                            on:change={() => setInterventionActive(intervention.id, !intervention.active)} />
-                        {intervention.displayName}
-                    </label>
+                    <NewCheckbox
+                        label={intervention.displayName}
+                        color={intervention.color}
+                        checked={intervention.active}
+                        callback={checked => setInterventionActive(intervention.id, checked)} />
                 {/each}
             </div>
             <div id="chart">
                 <svg width={graphWidth} height={graphHeight}>
                     <g>
-                        {#each solutionData as solutionDatum}
+                        {#each interventionResults as interventionResult}
                             <path
-                                fill="none"
-                                stroke="steelblue"
+                                stroke={interventionResult.color}
                                 stroke-width="1.5"
-                                d={lineFunction(solutionDatum)}
-                            >
+                                fill="none"
+                                d={lineFunction(interventionResult.data)}>
+                            </path>
+                            <path
+                                stroke-width="0"
+                                fill={interventionResult.color}
+                                opacity="0.2"
+                                d={areaFunction(interventionResult.data)}>
                             </path>
                         {/each}
                     </g>

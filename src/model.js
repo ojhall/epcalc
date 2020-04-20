@@ -83,7 +83,7 @@ export function get_solution(dt, N, I0, R0, D_incbation, D_infectious, D_recover
     var Iters = []
     while (steps--) {
         if ((steps + 1) % (sample_step) == 0) {
-            //       Dead    Hospital        Recovered        Infectious Exposed
+            //      Dead      Hospital           Recovered          Infectious Exposed
             P.push([N * v[9], N * (v[5] + v[6]), N * (v[7] + v[8]), N * v[2], N * v[1]])
             Iters.push(v)
             TI.push(N * (1 - v[0]))

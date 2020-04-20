@@ -4,6 +4,10 @@
     import NewCheckbox from './NewCheckbox.svelte';
     import { get_solution } from './model';
 
+    function formatNumber(num) {
+        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+    }
+
     const countries = [{
         id: 'uk',
         displayName: 'United Kingdom'
@@ -90,6 +94,10 @@
 
     // chart stuff!
 
+    const graphWidth = 800;
+    const graphHeight = 400;
+    const padding = { top: 20, right: 0, bottom: 20, left: 25 };
+
     $: xMax = 0;
     $: yMax = 0;
     $: interventionResults.forEach(interventionResult => {
@@ -97,23 +105,20 @@
         yMax = Math.max(yMax, interventionResult.data.reduce((a, b) => a > b ? a : b));
     });
 
-    const graphWidth = 800;
-    const graphHeight = 400;
-
     $: xScale = d3.scaleLinear()
         .domain([0, xMax])
-        .range([0, graphWidth]);
+        .range([padding.left, graphWidth - padding.right]);
     $: yScale = d3.scaleLinear()
         .domain([0, yMax])
-        .range([graphHeight, 0]); // flipped around for SVG co-ord system
+        .range([graphHeight - padding.bottom, padding.top]); // flipped around for SVG co-ord system
     $: lineFunction = d3.line()
         .x((d, i) => xScale(i))
         .y(d => yScale(d))
         .curve(d3.curveMonotoneX);
     $: areaFunction = d3.area()
         .x((d, i) => xScale(i))
-        .y0(graphHeight)
-        .y1(d => d3.scaleLinear().domain([0, yMax]).range([graphHeight, 0])(d));
+        .y0(graphHeight - padding.bottom)
+        .y1(d => yScale(d));
 </script>
 
 <style>
@@ -245,6 +250,24 @@
             </div>
             <div id="chart">
                 <svg width={graphWidth} height={graphHeight}>
+                    <g class="axis y-axis" transform="translate(0,{padding.top})">
+                        {#each yScale.ticks(5) as tick}
+                            <g class="tick tick-{tick}" transform="translate(0, {yScale(tick) - padding.bottom})">
+                            <line x2="100%"></line>
+                            <text y="-4">{formatNumber(tick)}{ (tick == yScale.ticks(5)[0]) ? " ": ""}</text>
+                            </g>
+                        {/each}
+                    </g>
+
+                    <!-- x axis -->
+                    <g class="axis x-axis">
+                        {#each xScale.ticks() as i}
+                            <g class="tick" transform="translate({xScale(i)},{graphHeight})">
+                            <text x="0" y="-4">{i == 0 ? "Day ":""}{i}</text>
+                            </g>
+                        {/each}
+                    </g>
+
                     <g>
                         {#each interventionResults as interventionResult}
                             <path

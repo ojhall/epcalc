@@ -3,24 +3,20 @@
     import * as d3 from "d3";
     import NewCheckbox from './NewCheckbox.svelte';
     import { get_solution } from './model';
+    import countries from './population-data-2018';
 
     function formatNumber(num) {
-        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+        return (num/1000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'k';
     }
 
-    const countries = [{
-        id: 'uk',
-        displayName: 'United Kingdom'
-    }];
-
-    let activeCountry = countries.find(c => c.id === 'uk');
+    let activeCountry = countries.find(c => c.name === 'United Kingdom');
 
     let interventions = [{
         id: 'do-nothing',
         displayName: 'Do nothing',
         transmissionRateFactor: 1.0,
         color: '#ED388D',
-        active: false
+        active: true
     }, {
         id: 'stay-at-home',
         displayName: 'Stay at home',
@@ -45,8 +41,7 @@
     var modelledData = [];
 
     var Time_to_death     = 32
-    var logN              = Math.log(7e6)
-    var N                 = Math.exp(logN)
+    $: N                  = activeCountry.population;
     var I0                = 1
     var R0                = 2.2
     var D_incbation       = 5.2       
@@ -73,7 +68,7 @@
         };
     });
 
-    const getSolutionForIntervention = (transmissionRateFactor) => {
+    $: getSolutionForIntervention = (transmissionRateFactor) => {
         return get_solution(
             dt,
             N,
@@ -218,7 +213,7 @@
 <main>
     <section id="chart-section">
         <div class="section-content">
-            <h1>{activeCountry.displayName}</h1>
+            <h1>{activeCountry.name}</h1>
             <select bind:value={activeCountry}>
                 <!--
                     NOTE: setting this value may update things like:
@@ -227,7 +222,7 @@
                     * enacted interventions
                 -->
                 {#each countries as country}
-                    <option value={country}>{country.displayName}</option>
+                    <option value={country}>{country.name}</option>
                 {/each}
             </select>
 

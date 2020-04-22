@@ -197,6 +197,18 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
     }
 
+    .intervention-checkbox-container {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .intervention-checkbox {
+        font-weight: bold;
+        margin-right: 25px;
+    }
+
     /* Chart section end */
 
     /* Estimated outcomes section */
@@ -244,16 +256,18 @@
                 <div class="info-box">Current intervention info box</div>
             </div>
 
-            <div class="no-highlighting">
+            <div class="intervention-checkbox-container no-highlighting">
                 <!--
                     NOTE: these checkboxes determine which curves are shown on the chart
                 -->
                 {#each interventions as intervention}
-                    <NewCheckbox
-                        label={intervention.displayName}
-                        color={intervention.color}
-                        checked={intervention.active}
-                        callback={checked => setInterventionActive(intervention.id, checked)} />
+                    <span class="intervention-checkbox">
+                        <NewCheckbox
+                            label={intervention.displayName}
+                            color={intervention.color}
+                            checked={intervention.active}
+                            callback={checked => setInterventionActive(intervention.id, checked)} />
+                    </span>
                 {/each}
             </div>
             <div id="chart">

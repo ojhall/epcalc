@@ -6,7 +6,13 @@
     import countries from './population-data-2018';
 
     function formatNumber(num) {
-        return (num/1000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'k';
+        if (num < 1000) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        }
+        if (num < 1000000) {
+            return (num/1000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'k';
+        }
+        return (num/1000000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'M';
     }
 
     let activeCountry = countries.find(c => c.name === 'United Kingdom');
@@ -51,9 +57,8 @@
     var D_hospital_lag    = 5
     var D_death           = Time_to_death - D_infectious 
     var CFR               = 0.02  
-    var InterventionTime  = 100  
-    var OMInterventionAmt = 2/3
-    var InterventionAmt   = 1 - OMInterventionAmt
+    var InterventionTime  = 100
+    var InterventionAmt   = 1
     var dt                = 2
     var P_SEVERE          = 0.2
     var duration          = 7*12*1e10
@@ -93,12 +98,8 @@
     const graphHeight = 400;
     const padding = { top: 20, right: 0, bottom: 20, left: 25 };
 
-    $: xMax = 0;
-    $: yMax = 0;
-    $: interventionResults.forEach(interventionResult => {
-        xMax = Math.max(xMax, interventionResult.data.length);
-        yMax = Math.max(yMax, interventionResult.data.reduce((a, b) => a > b ? a : b));
-    });
+    $: xMax = interventionResults.map(i => i.data.length).reduce((total, num) => Math.max(total, num));
+    $: yMax = interventionResults.map(i => i.data.reduce((total, num) => Math.max(total, num))).reduce((total, num) => Math.max(total, num));
 
     $: xScale = d3.scaleLinear()
         .domain([0, xMax])

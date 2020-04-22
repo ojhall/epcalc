@@ -27,7 +27,7 @@ var integrate = (m, f, y, t, h) => {
 export function get_solution(dt, N, I0, R0, D_incbation, D_infectious, D_recovery_mild, D_hospital_lag, D_recovery_severe, D_death, P_SEVERE, CFR, InterventionTime, InterventionAmt, duration) {
 
     var interpolation_steps = 40
-    var steps = 200 * interpolation_steps
+    var steps = 110 * interpolation_steps
     var dt = dt / interpolation_steps
     var sample_step = interpolation_steps
 

@@ -5,14 +5,18 @@
     import { get_solution } from './model';
     import countries from './population-data-2018';
 
-    function formatNumber(num) {
+    function insertCommas(num) {
+        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    }
+
+    function formatNumberForAxis(num) {
         if (num < 1000) {
-            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+            return num;
         }
         if (num < 1000000) {
-            return (num/1000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'k';
+            return (num/1000) + 'k';
         }
-        return (num/1000000).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') + 'M';
+        return (num/1000000) + 'M';
     }
 
     let activeCountry = countries.find(c => c.name === 'United Kingdom');
@@ -59,7 +63,7 @@
     var CFR               = 0.02  
     var InterventionTime  = 100
     var InterventionAmt   = 1
-    var dt                = 2
+    var dt                = 4
     var P_SEVERE          = 0.2
     var duration          = 7*12*1e10
 
@@ -67,9 +71,13 @@
 
     $: interventionResults = activeInterventions.map(i => {
         const solution = getSolutionForIntervention(i.transmissionRateFactor);
+        const deaths = solution.P.map(d => d[0]);
+        const hospitalised = solution.P.map(d => d[1]);
         return {
-            color: i.color,
-            data: solution.P.map(d => d[1])
+            ...i,
+            hospitalised: hospitalised,
+            maxHospitalised: Math.ceil(hospitalised.reduce((total, i) => Math.max(total, i), 0)),
+            maxDeaths: Math.ceil(deaths.reduce((total, i) => Math.max(total, i), 0)),
         };
     });
 
@@ -98,8 +106,8 @@
     const graphHeight = 400;
     const padding = { top: 20, right: 0, bottom: 20, left: 25 };
 
-    $: xMax = interventionResults.map(i => i.data.length).reduce((total, num) => Math.max(total, num));
-    $: yMax = interventionResults.map(i => i.data.reduce((total, num) => Math.max(total, num))).reduce((total, num) => Math.max(total, num));
+    $: xMax = interventionResults.map(i => i.hospitalised.length).reduce((total, num) => Math.max(total, num), 0);
+    $: yMax = interventionResults.reduce((total, i) => Math.max(total, i.maxHospitalised), 0);
 
     $: xScale = d3.scaleLinear()
         .domain([0, xMax])
@@ -121,6 +129,10 @@
 
     * {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .unimplemented {
+        color: lightgray;
     }
 
     header {
@@ -250,7 +262,7 @@
                         {#each yScale.ticks(5) as tick}
                             <g class="tick tick-{tick}" transform="translate(0, {yScale(tick) - padding.bottom})">
                             <line x2="100%"></line>
-                            <text y="-4">{formatNumber(tick)}{ (tick == yScale.ticks(5)[0]) ? " ": ""}</text>
+                            <text y="-4">{formatNumberForAxis(tick)}{ (tick == yScale.ticks(5)[0]) ? " ": ""}</text>
                             </g>
                         {/each}
                     </g>
@@ -270,13 +282,13 @@
                                 stroke={interventionResult.color}
                                 stroke-width="1.5"
                                 fill="none"
-                                d={lineFunction(interventionResult.data)}>
+                                d={lineFunction(interventionResult.hospitalised)}>
                             </path>
                             <path
                                 stroke-width="0"
                                 fill={interventionResult.color}
                                 opacity="0.2"
-                                d={areaFunction(interventionResult.data)}>
+                                d={areaFunction(interventionResult.hospitalised)}>
                             </path>
                         {/each}
                     </g>
@@ -288,7 +300,7 @@
     <section>
         <div class="section-content">
             <h2>Estimated outcomes</h2>
-            <h3>22 Mar - 22 Jun 2020</h3>
+            <h3 class="unimplemented">22 Mar - 22 Jun 2020</h3>
             <p>
                 Bit of an overview to caveat the figures in the table below and to give a bit of context around how these figures can be calculated.
                 Lorem ipsum dolor sit ame tconsectetur adipiscing elit. In in pellentesque risus, tristique placerat massa.
@@ -302,27 +314,15 @@
                     <th>Date hospital capacity reached</th>
                     <th>Total fatalities</th>
                 </tr>
-                <tr>
-                    <td>Do nothing</td>
-                    <td>0.5 - 1.5</td>
-                    <td>350,456</td>
-                    <td>22 Apr 2020</td>
-                    <td>22,000</td>
-                </tr>
-                <tr>
-                    <td>Stay at home (current)</td>
-                    <td class="r-below-one">0.2 - 0.7</td>
-                    <td>298,132</td>
-                    <td>2 May 2020</td>
-                    <td>19,898</td>
-                </tr>
-                <tr>
-                    <td>Stay at home + contact tracing</td>
-                    <td class="r-below-one">0.1 - 0.5</td>
-                    <td>220,498</td>
-                    <td>-</td>
-                    <td>12,000</td>
-                </tr>
+                {#each interventionResults as interventionResult}
+                    <tr>
+                        <td>{interventionResult.displayName}</td>
+                        <td class="unimplemented">0.5 - 1.5</td>
+                        <td>{insertCommas(interventionResult.maxHospitalised)}</td>
+                        <td class="unimplemented">22 Apr 2020</td>
+                        <td>{insertCommas(interventionResult.maxDeaths)}</td>
+                    </tr>
+                {/each}
             </table>
         </div>
     </section>

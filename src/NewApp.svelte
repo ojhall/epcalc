@@ -66,9 +66,7 @@
     var P_SEVERE          = 0.2
     var duration          = 7*12*1e10
 
-    $: activeInterventions = interventions.filter(i => i.active);
-
-    $: interventionResults = activeInterventions.map(i => {
+    $: interventionResults = interventions.map(i => {
         const solution = getSolutionForIntervention(i.transmissionRateFactor);
         const deaths = solution.P.map(d => d[0]);
         const hospitalised = solution.P.map(d => d[1]);
@@ -291,18 +289,20 @@
 
                     <g>
                         {#each interventionResults as interventionResult}
-                            <path
-                                stroke={interventionResult.color}
-                                stroke-width="1.5"
-                                fill="none"
-                                d={lineFunction(interventionResult.hospitalised)}>
-                            </path>
-                            <path
-                                stroke-width="0"
-                                fill={interventionResult.color}
-                                opacity="0.2"
-                                d={areaFunction(interventionResult.hospitalised)}>
-                            </path>
+                            {#if interventionResult.active}
+                                <path
+                                    stroke={interventionResult.color}
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    d={lineFunction(interventionResult.hospitalised)}>
+                                </path>
+                                <path
+                                    stroke-width="0"
+                                    fill={interventionResult.color}
+                                    opacity="0.2"
+                                    d={areaFunction(interventionResult.hospitalised)}>
+                                </path>
+                            {/if}
                         {/each}
                     </g>
                 </svg>

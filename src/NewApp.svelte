@@ -62,7 +62,6 @@
     var D_death           = Time_to_death - D_infectious 
     var CFR               = 0.02  
     var InterventionTime  = 100
-    var InterventionAmt   = 1
     var dt                = 4
     var P_SEVERE          = 0.2
     var duration          = 7*12*1e10
@@ -96,7 +95,7 @@
             P_SEVERE,
             CFR,
             InterventionTime,
-            InterventionAmt * transmissionRateFactor,
+            transmissionRateFactor,
             duration);
     }
 
@@ -323,7 +322,7 @@
             <table>
                 <tr>
                     <th>Intervention</th>
-                    <th>Transmission rate min-max range</th>
+                    <th>Estimated transmission rate</th>
                     <th>Total hospitalised</th>
                     <th>Date hospital capacity reached</th>
                     <th>Total fatalities</th>
@@ -331,7 +330,7 @@
                 {#each interventionResults as interventionResult}
                     <tr>
                         <td>{interventionResult.displayName}</td>
-                        <td class="unimplemented">0.5 - 1.5</td>
+                        <td>{(R0 * interventionResult.transmissionRateFactor).toFixed(2)}</td>
                         <td>{insertCommas(interventionResult.maxHospitalised)}</td>
                         <td class="unimplemented">22 Apr 2020</td>
                         <td>{insertCommas(interventionResult.maxDeaths)}</td>

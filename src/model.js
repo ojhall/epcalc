@@ -24,10 +24,28 @@ var integrate = (m, f, y, t, h) => {
 }
 
 // dt, N, I0, R0, D_incbation, D_infectious, D_recovery_mild, D_hospital_lag, D_recovery_severe, D_death, P_SEVERE, CFR, InterventionTime, InterventionAmt, duration
-export function get_solution(dt, N, I0, R0, D_incbation, D_infectious, D_recovery_mild, D_hospital_lag, D_recovery_severe, D_death, P_SEVERE, CFR, InterventionTime, InterventionAmt, duration) {
+export function get_solution(
+    dt,
+    N,
+    I0,
+    R0,
+    D_incbation,
+    D_infectious,
+    D_recovery_mild,
+    D_hospital_lag,
+    D_recovery_severe,
+    D_death,
+    P_SEVERE,
+    CFR,
+    InterventionTime,
+    InterventionAmt,
+    duration,
+    hospitalCapacity
+    ) {
 
+    var days = 110;
     var interpolation_steps = 40
-    var steps = 110 * interpolation_steps
+    var steps = days * interpolation_steps
     var dt = dt / interpolation_steps
     var sample_step = interpolation_steps
 
@@ -81,12 +99,20 @@ export function get_solution(dt, N, I0, R0, D_incbation, D_infectious, D_recover
     var P = []
     var TI = []
     var Iters = []
+    var dayHospitalCapacityReached = null;
     while (steps--) {
         if ((steps + 1) % (sample_step) == 0) {
-            //      Dead      Hospital           Recovered          Infectious Exposed
-            P.push([N * v[9], N * (v[5] + v[6]), N * (v[7] + v[8]), N * v[2], N * v[1]])
+            var dead = N * v[9];
+            var hospitalised = N * (v[5] + v[6]);
+            var recovered = N * (v[7] + v[8]);
+            var infectious = N * v[2];
+            var exposed = N * v[1];
+            P.push([dead, hospitalised, recovered, infectious, exposed])
             Iters.push(v)
             TI.push(N * (1 - v[0]))
+            if (hospitalCapacity && !dayHospitalCapacityReached && hospitalised >= hospitalCapacity) {
+                dayHospitalCapacityReached = days - (steps / interpolation_steps);
+            }
             // console.log((v[0] + v[1] + v[2] + v[3] + v[4] + v[5] + v[6] + v[7] + v[8] + v[9]))
             // console.log(v[0] , v[1] , v[2] , v[3] , v[4] , v[5] , v[6] , v[7] , v[8] , v[9])
         }
@@ -99,6 +125,7 @@ export function get_solution(dt, N, I0, R0, D_incbation, D_infectious, D_recover
         "total": 1 - v[0],
         "total_infected": TI,
         "Iters": Iters,
-        "dIters": f
+        "dIters": f,
+        "dayHospitalCapacityReached": dayHospitalCapacityReached
     }
 }

@@ -75,6 +75,7 @@
             hospitalised: hospitalised,
             maxHospitalised: Math.ceil(hospitalised.reduce((total, i) => Math.max(total, i), 0)),
             maxDeaths: Math.ceil(deaths.reduce((total, i) => Math.max(total, i), 0)),
+            dayHospitalCapacityReached: solution.dayHospitalCapacityReached
         };
     });
 
@@ -94,7 +95,8 @@
             CFR,
             InterventionTime,
             transmissionRateFactor,
-            duration);
+            duration,
+            activeCountry.hospitalCapacity);
     }
 
     // chart stuff!
@@ -344,7 +346,9 @@
                     <th>Intervention</th>
                     <th>Estimated transmission rate</th>
                     <th>Total hospitalised</th>
-                    <th>Date hospital capacity reached</th>
+                    {#if activeCountry.hospitalCapacity}
+                    <th>Day hospital capacity reached</th>
+                    {/if}
                     <th>Total fatalities</th>
                 </tr>
                 {#each interventionResults as interventionResult}
@@ -352,7 +356,9 @@
                         <td>{interventionResult.displayName}</td>
                         <td>{(R0 * interventionResult.transmissionRateFactor).toFixed(2)}</td>
                         <td>{insertCommas(interventionResult.maxHospitalised)}</td>
-                        <td class="unimplemented">22 Apr 2020</td>
+                        {#if activeCountry.hospitalCapacity}
+                        <td>{Math.floor(interventionResult.dayHospitalCapacityReached) || 'Never'}</td>
+                        {/if}
                         <td>{insertCommas(interventionResult.maxDeaths)}</td>
                     </tr>
                 {/each}

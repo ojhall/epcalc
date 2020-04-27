@@ -206,6 +206,15 @@
         margin-right: 25px;
     }
 
+    .tick {
+        font-size: .725em;
+        font-weight: bold;
+    }
+
+    .tick line {
+        stroke: #e2e2e2;
+    }
+
     /* Chart section end */
 
     /* Estimated outcomes section */
@@ -272,8 +281,8 @@
                     <g class="axis y-axis" transform="translate(0,{padding.top})">
                         {#each yScale.ticks(5) as tick}
                             <g class="tick tick-{tick}" transform="translate(0, {yScale(tick) - padding.bottom})">
-                            <line x2="100%"></line>
-                            <text y="-4">{formatNumberForAxis(tick)}{ (tick == yScale.ticks(5)[0]) ? " ": ""}</text>
+                                <line x2="100%"></line>
+                                <text y="4">{formatNumberForAxis(tick)}{ (tick == yScale.ticks(5)[0]) ? " ": ""}</text>
                             </g>
                         {/each}
                     </g>
@@ -282,7 +291,7 @@
                     <g class="axis x-axis">
                         {#each xScale.ticks() as i}
                             <g class="tick" transform="translate({xScale(i)},{graphHeight})">
-                            <text x="0" y="-4">{i == 0 ? "Day ":""}{i}</text>
+                                <text x="0" y="-4">{i == 0 ? "Day ":""}{i}</text>
                             </g>
                         {/each}
                     </g>

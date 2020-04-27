@@ -781,7 +781,8 @@ export default [
   },
   {
     "name": "United Kingdom",
-    "population": 66488991
+    "population": 66488991,
+    "hospitalCapacity": 141000
   },
   {
     "name": "United Republic of Tanzania",

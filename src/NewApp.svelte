@@ -215,6 +215,11 @@
         stroke: #e2e2e2;
     }
 
+    .hospital-capacity line {
+        stroke: #00f;
+        stroke-dasharray: 5,2;
+    }
+
     /* Chart section end */
 
     /* Estimated outcomes section */
@@ -314,6 +319,12 @@
                             {/if}
                         {/each}
                     </g>
+
+                    {#if activeCountry.hospitalCapacity !== undefined}
+                        <g class="hospital-capacity" transform="translate({0},{yScale(activeCountry.hospitalCapacity)})">
+                            <line x2="100%"></line>
+                        </g>
+                    {/if}
                 </svg>
             </div>
         </div>

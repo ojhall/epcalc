@@ -313,7 +313,7 @@
                                 <path
                                     stroke-width="0"
                                     fill={interventionResult.color}
-                                    opacity="0.5"
+                                    opacity="0.4"
                                     d={areaFunction(interventionResult.hospitalised)}>
                                 </path>
                             {/if}

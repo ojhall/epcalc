@@ -357,7 +357,7 @@
                         <td>{(R0 * interventionResult.transmissionRateFactor).toFixed(2)}</td>
                         <td>{insertCommas(interventionResult.maxHospitalised)}</td>
                         {#if activeCountry.hospitalCapacity}
-                        <td>{Math.floor(interventionResult.dayHospitalCapacityReached) || 'Never'}</td>
+                        <td>{Math.floor(interventionResult.dayHospitalCapacityReached) || '-'}</td>
                         {/if}
                         <td>{insertCommas(interventionResult.maxDeaths)}</td>
                     </tr>
